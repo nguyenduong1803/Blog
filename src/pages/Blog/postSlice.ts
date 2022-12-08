@@ -1,6 +1,6 @@
 import { RootState } from './../../redux/store'
 import { IPost } from '../../types/blog.type'
-import { createReducer, createAction } from '@reduxjs/toolkit'
+import { createReducer, createAction, current } from '@reduxjs/toolkit'
 import { initialPostList } from 'constants/blog'
 
 interface BlogState {
@@ -31,14 +31,27 @@ const postReducer = createReducer(initState, (builder) => {
       state.editingPost = state.postList.find((post: IPost) => post.id === action.payload) || null
     })
     .addCase(finishEditPost, (state, action) => {
-      const index = state.postList.findIndex((post) => post.id === action.payload.id)
-      state.postList[index] = action.payload
-      state.editingPost = null
+      const postId = action.payload.id
+      console.log('prev: ', current(state))
+      state.postList.some((post, index) => {
+        if (post.id === postId) {
+          state.postList[index] = action.payload
+          return true
+        }
+        console.log('next: ', current(state))
+      })
     })
     .addCase(cancelEditingPost, (state) => {
       console.log('run')
       state.editingPost = null
     })
+    .addMatcher(
+      // add matchers run when function here
+      (action) => action.type.includes('cancel'),
+      (state, action) => {
+        console.log(current(state))
+      }
+    )
 })
 // selector
 export const selectPost = (state: RootState) => state.blog.postList
