@@ -4,7 +4,6 @@ import Postlist from './components/PostList/Postlist'
 type Props = {}
 
 const Blog = (props: Props) => {
-  
   return (
     <div className='p-5'>
       <CreatePost />

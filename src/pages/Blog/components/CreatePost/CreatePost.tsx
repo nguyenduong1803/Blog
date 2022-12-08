@@ -6,8 +6,8 @@ import { IPost } from 'types/blog.type'
 
 const initialState: IPost = {
   description: '',
-  featureImage: '',
-  id: '',
+  images: '',
+  _id: '',
   publish: false,
   title: ''
 }
@@ -16,15 +16,14 @@ const CreatePost = () => {
   const postEdit = useSelector(selectPostEditing)
   const [formData, setFormData] = useState<IPost>(initialState)
 
-  const handleSetForm = (name: keyof IPost) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSetForm = (name: keyof Omit<IPost, '_id'>) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [name]: e.target.value }))
   }
   // handle submit
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (formData.description === '' || formData.featureImage === '' || formData.title === '') return
-    const formDataWithId = { ...formData, id: Math.random().toString() }
-    distpath(addPost(formDataWithId))
+    if (formData.description === '' || formData.images === '' || formData.title === '') return
+    distpath(addPost(formData))
     handleResetForm()
   }
   // reset
@@ -69,10 +68,10 @@ const CreatePost = () => {
                     </label>
                     <input
                       type='text'
-                      onChange={handleSetForm('featureImage')}
+                      onChange={handleSetForm('images')}
                       name='last-name'
                       id='last-name'
-                      value={formData.featureImage}
+                      value={formData.images}
                       autoComplete='family-name'
                       className='mt-1 block h-10 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                     />

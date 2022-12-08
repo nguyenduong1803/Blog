@@ -1,7 +1,7 @@
 export interface IPost {
   title: string
-  featureImage: string
+  images: string
   description: string
-  id: string
+  _id: string
   publish: boolean
 }
