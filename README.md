@@ -1,5 +1,43 @@
 # Getting Started with Create React App
+# Blog
+using tailwindcss redux toolkit, typescript,
+config project, redux RTK
++using tailwindcss redux toolkit, typescript,
++config project, redux RTK
 
+initital
+yarn create-react-app projectName --template typescript
+yarn add -d prettier eslint-plugin-prettier eslint-config-prettier
++ yarn create-react-app projectName --template typescript
++ yarn add -d prettier eslint-plugin-prettier eslint-config-prettier
+
+  "scripts": {
+ + "scripts": {
+    ...
+    "lint":"eslint --ext ts,tsx src/",
+    "lint:fix":"eslint --fix --ext ts,tsx src/",
+    "prettier":"prettier --check \"src/**/(*.tsx|*.ts|*.css|*.scss\"",
+    "prettier:fix":"prettier --write \"src/**/(*.tsx|*.ts|*.css|*.scss\""
+  }
+
+yarn add tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+yarn add -D prettier-plugin-tailwindcss
+yarn add @reduxjs/toolkit
++ yarn add tailwindcss postcss autoprefixer
++ npx tailwindcss init -p
++ yarn add -D prettier-plugin-tailwindcss
++ yarn add @reduxjs/toolkit
+
+run 
+yarn lint
+yarn lint:fix 
+yarn prettier 
+yarn prettier:fix
++ yarn lint
++ yarn lint:fix 
++ yarn prettier 
++ yarn prettier:fix
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
