@@ -1,6 +1,6 @@
 import { RootState } from './../../redux/store'
 import { IPost } from '../../types/blog.type'
-import { createReducer, createAction, current } from '@reduxjs/toolkit'
+import { createReducer, createAction, current,nanoid } from '@reduxjs/toolkit'
 import { initialPostList } from 'constants/blog'
 
 interface BlogState {
@@ -13,7 +13,14 @@ const initState: BlogState = {
   postList: initialPostList
 }
 // create Action
-export const addPost = createAction<IPost>('blog/addPost')
+export const addPost = createAction('blog/addPost', function (post: Omit<IPost, 'id'>) {
+  return {
+    payload:{
+      ...post,
+      id:nanoid()
+    }
+  }
+})
 export const removePost = createAction<string>('blog/removePost')
 export const startEditPost = createAction<string>('blog/startEditPost')
 export const finishEditPost = createAction<IPost>('blog/finishEditPost')
