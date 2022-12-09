@@ -1,3 +1,4 @@
+import { unwrapResult } from '@reduxjs/toolkit'
 import { addPost, cancelEditingPost, finishEditPost, selectPostEditing } from 'pages/Blog/postSlice'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -11,20 +12,30 @@ const initialState: IPost = {
   publish: false,
   title: ''
 }
+type Error = {
+  error: Object
+  messsage: string
+}
 const CreatePost = () => {
   const distpath = useDispatch<AppDistpatch>()
   const postEdit = useSelector(selectPostEditing)
+  const [error, setError] = useState<null | Error>(null)
   const [formData, setFormData] = useState<IPost>(initialState)
-
   const handleSetForm = (name: keyof Omit<IPost, '_id'>) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [name]: e.target.value }))
   }
   // handle submit
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (formData.description === '' || formData.images === '' || formData.title === '') return
-    distpath(addPost(formData))
-    handleResetForm()
+    // if (formData.description === '' || formData.images === '' || formData.title === '') return
+    const { _id, ...formDataExceptId } = formData
+    try {
+      distpath(addPost(formDataExceptId)).unwrap()
+      handleResetForm()
+    } catch (error: any) {
+      console.log(error)
+      setError(error)
+    }
   }
   // reset
   const handleResetForm = () => {
@@ -35,7 +46,6 @@ const CreatePost = () => {
   }
   const handleUpdatePost = () => {
     distpath(finishEditPost(formData))
-    console.log('update')
   }
   useEffect(() => {
     setFormData(postEdit || initialState)
@@ -107,6 +117,7 @@ const CreatePost = () => {
                     />
                   </div>
                 </div>
+                {error?.messsage && <p className='text-red-700'>{error.messsage}</p>}
               </div>
               <div className='bg-gray-50 px-4 py-3 text-right sm:px-6'>
                 {postEdit && (
