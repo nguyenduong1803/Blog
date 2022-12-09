@@ -1,17 +1,35 @@
 import { RootState } from './../../redux/store'
 import { IPost } from '../../types/blog.type'
-import { createReducer, createAction, current, nanoid, createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import {
+  createReducer,
+  createAction,
+  current,
+  nanoid,
+  createSlice,
+  createAsyncThunk,
+  AsyncThunk
+} from '@reduxjs/toolkit'
 import { initialPostList } from 'constants/blog'
 import Http from 'utils/Http'
+
+type GenericAsyncThunk = AsyncThunk<unknown, unknown, any>
+
+type PendingAction = ReturnType<GenericAsyncThunk['pending']>
+type RejectedAction = ReturnType<GenericAsyncThunk['rejected']>
+type FulfilledAction = ReturnType<GenericAsyncThunk['fulfilled']>
 
 interface BlogState {
   editingPost: IPost | null
   postList: IPost[]
+  loading: boolean
+  currentRequestId: string | undefined
 }
 
 const initState: BlogState = {
   editingPost: null,
-  postList: []
+  postList: [],
+  loading: false,
+  currentRequestId: undefined
 }
 
 const postSlice = createSlice({
@@ -38,6 +56,29 @@ const postSlice = createSlice({
           }
         })
       })
+      .addCase(cancelEditingPost, (state) => {
+        state.editingPost = null
+      })
+      .addMatcher<PendingAction>(
+        (action) => action.type.endsWith('/pending'),
+        (state, action) => {
+          state.loading = true
+          state.currentRequestId = action.meta.requestId
+        }
+      )
+      .addMatcher<FulfilledAction | RejectedAction>(
+        (action) => action.type.endsWith('/fulfilled') || action.type.endsWith('/rejected'),
+        (state, action) => {
+          if (state.loading && state.currentRequestId === action.meta.requestId) {
+            state.loading = false
+            state.currentRequestId = undefined
+          }
+        }
+      )
+      .addDefaultCase((state, action) => {
+        // not match action.type => run here
+        console.log(`Action: ${action.type}`)
+      })
   }
 })
 
@@ -48,10 +89,18 @@ export const getPostList = createAsyncThunk('blog/getPostList', async (_, thunkA
   return res.data
 })
 export const addPost = createAsyncThunk('blog/addPost', async (body: Omit<IPost, '_id'>, thunkApi) => {
-  const res = await Http.post<IPost>('/blog/add', body, {
-    signal: thunkApi.signal
-  })
-  return res.data
+  try {
+    const res = await Http.post<IPost>('/blog/add', body, {
+      signal: thunkApi.signal
+    })
+    return res.data
+  } catch (error: any) {
+    console.log(error)
+    if (error.name === 'AxiosError' && error.response.status === 400) {
+      return thunkApi.rejectWithValue(error.response.data)
+    }
+    throw error
+  }
 })
 export const finishEditPost = createAsyncThunk('blog/finishEditPost', async (data: IPost, thunkApi) => {
   const { _id, ...body } = data
@@ -110,4 +159,5 @@ export const cancelEditingPost = createAction('blog/cancelEditingPost')
 // selector
 export const selectPost = (state: RootState) => state.blog.postList
 export const selectPostEditing = (state: RootState) => state.blog.editingPost
+export const selectLoading = (state: RootState) => state.blog.loading
 export default postSlice.reducer
