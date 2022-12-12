@@ -20,6 +20,7 @@ type FulfilledAction = ReturnType<GenericAsyncThunk['fulfilled']>
 
 interface BlogState {
   editingPost: IPost | null
+  idEditingPost: string 
   postList: IPost[]
   loading: boolean
   currentRequestId: string | undefined
@@ -27,6 +28,7 @@ interface BlogState {
 
 const initState: BlogState = {
   editingPost: null,
+  idEditingPost:"",
   postList: [],
   loading: false,
   currentRequestId: undefined
@@ -45,7 +47,9 @@ const postSlice = createSlice({
         state.postList.push(action.payload.data)
       })
       .addCase(startEditPost, (state, action) => {
-        state.editingPost = state.postList.find((post: IPost) => post._id === action.payload) || null
+        console.log(action.payload)
+        state.idEditingPost = action.payload
+        // state.editingPost = state.postList.find((post: IPost) => post._id === action.payload) || null
       })
       .addCase(finishEditPost.fulfilled, (state, action: any) => {
         const postId = action.payload.product._id
@@ -103,11 +107,11 @@ export const addPost = createAsyncThunk('blog/addPost', async (body: Omit<IPost,
   }
 })
 export const finishEditPost = createAsyncThunk('blog/finishEditPost', async (data: IPost, thunkApi) => {
-  const { _id, ...body } = data
-  const res = await Http.put<IPost>('/blog/update/' + _id, body, {
-    signal: thunkApi.signal
-  })
-  return res.data
+  // const { _id, ...body } = data
+  // const res = await Http.put<IPost>('/blog/update/' + _id, body, {
+  //   signal: thunkApi.signal
+  // })
+  // return res.data
 })
 
 // create Action
@@ -159,5 +163,6 @@ export const cancelEditingPost = createAction('blog/cancelEditingPost')
 // selector
 export const selectPost = (state: RootState) => state.blog.postList
 export const selectPostEditing = (state: RootState) => state.blog.editingPost
+export const selectPostIdEditing = (state: RootState) => state.blog.idEditingPost
 export const selectLoading = (state: RootState) => state.blog.loading
 export default postSlice.reducer
