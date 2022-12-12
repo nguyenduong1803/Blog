@@ -1,7 +1,14 @@
 import { unwrapResult } from '@reduxjs/toolkit'
-import { addPost, cancelEditingPost, finishEditPost, selectPostEditing } from 'pages/Blog/postSlice'
+import {
+  addPost,
+  cancelEditingPost,
+  finishEditPost,
+  selectPostEditing,
+  selectPostIdEditing
+} from 'pages/Blog/postSlice'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useAddPostMutation, useGetPostByIdQuery, useUpdatePostMutation } from 'redux/RTKQuery/blog.service'
 import { AppDistpatch } from 'redux/store'
 import { IPost } from 'types/blog.type'
 
@@ -17,8 +24,15 @@ type Error = {
   messsage: string
 }
 const CreatePost = () => {
+  // redux toolkit
   const distpath = useDispatch<AppDistpatch>()
   const postEdit = useSelector(selectPostEditing)
+  const postIdEdit = useSelector(selectPostIdEditing)
+  // RTK Query/
+  const [setAddPost, addPostResult] = useAddPostMutation()
+  const [setUpdatePost, updatePostResult] = useUpdatePostMutation()
+  const { data, isFetching } = useGetPostByIdQuery(postIdEdit, { skip: !postIdEdit })
+  // state
   const [error, setError] = useState<null | Error>(null)
   const [formData, setFormData] = useState<IPost>(initialState)
   const handleSetForm = (name: keyof Omit<IPost, '_id'>) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,13 +43,18 @@ const CreatePost = () => {
     e.preventDefault()
     // if (formData.description === '' || formData.images === '' || formData.title === '') return
     const { _id, ...formDataExceptId } = formData
-    try {
-      distpath(addPost(formDataExceptId)).unwrap()
-      handleResetForm()
-    } catch (error: any) {
-      console.log(error)
-      setError(error)
-    }
+    // with reudux toolkit
+    // try {
+    //   distpath(addPost(formDataExceptId)).unwrap()
+    //   handleResetForm()
+    // } catch (error: any) {
+    //   console.log(error)
+    //   setError(error)
+    // }
+    // with mutation RTK
+
+    setAddPost(formDataExceptId)
+    console.log(formData)
   }
   // reset
   const handleResetForm = () => {
@@ -45,11 +64,13 @@ const CreatePost = () => {
     distpath(cancelEditingPost())
   }
   const handleUpdatePost = () => {
-    distpath(finishEditPost(formData))
+    const { _id, ...formDataExceptId } = formData
+    setUpdatePost({ id: _id, body: formDataExceptId })
   }
   useEffect(() => {
-    setFormData(postEdit || initialState)
-  }, [postEdit])
+    console.log(data)
+    setFormData(data?.data || initialState)
+  }, [data])
   return (
     <div>
       <div className='mt-10 sm:mt-0'>
@@ -120,7 +141,7 @@ const CreatePost = () => {
                 {error?.messsage && <p className='text-red-700'>{error.messsage}</p>}
               </div>
               <div className='bg-gray-50 px-4 py-3 text-right sm:px-6'>
-                {postEdit && (
+                {Boolean(postIdEdit) && (
                   <>
                     <button
                       onClick={handleUpdatePost}
@@ -137,7 +158,7 @@ const CreatePost = () => {
                     </button>
                   </>
                 )}
-                {!postEdit && (
+                {!Boolean(postIdEdit) && (
                   <button
                     type='submit'
                     className='inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white '
